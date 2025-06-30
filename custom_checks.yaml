@@ -1,0 +1,68 @@
+id: arenaplus-custom-checks
+
+info:
+  name: ArenaPlus Web App Custom Security Checks
+  author: naimurrahman
+  severity: medium
+  description: |
+    Custom template for ArenaPlus web app to check for open redirect, exposed metadata, WASM usage, and missing security headers.
+  tags: web,arena,redirect,wasm,headers,metadata
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?isFrom=Glife&gameId=123&next=https://evil.com"
+    headers:
+      User-Agent: nuclei-scanner
+
+    matchers-condition: or
+    matchers:
+
+      - type: regex
+        name: open-redirect
+        regex:
+          - 'location.href\s*=\s*[\'"]?/glifeingame\?isFrom=Glife'
+        part: body
+        condition: and
+
+      - type: word
+        name: og-meta-exposed
+        words:
+          - '<meta property="og:title"'
+          - '<meta property="og:description"'
+          - '<meta property="og:url"'
+        condition: and
+        part: body
+
+      - type: word
+        name: wasm-detected
+        words:
+          - 'WebAssembly.instantiateStreaming'
+          - 'window.instantiateStreaming'
+        part: body
+
+      - type: word
+        name: analytics-ids
+        words:
+          - 'appsflyer.com'
+          - 'googletagmanager.com'
+          - 'GTM-'
+        part: body
+
+      - type: status
+        status:
+          - 200
+
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+    headers:
+      User-Agent: nuclei-scanner
+
+    matchers:
+      - type: regex
+        name: missing-security-headers
+        regex:
+          - '^(?!.*content-security-policy).*'
+        part: header
+        condition: and
