@@ -5,7 +5,7 @@ info:
   author: naimurrahman
   severity: medium
   description: |
-    Checks ArenaPlus for exposed OpenGraph metadata, WebAssembly usage, and missing CSP.
+    Checks ArenaPlus for exposed OpenGraph metadata, WebAssembly usage, and known analytics scripts.
   tags: web,arena,metadata,wasm,headers,exposure
 
 requests:
@@ -41,9 +41,3 @@ requests:
           - 'huaweicloud.com'
         part: body
         condition: or
-
-      - type: regex
-        name: missing-csp
-        regex:
-          - '^(?!.*content-security-policy).*'
-        part: header
