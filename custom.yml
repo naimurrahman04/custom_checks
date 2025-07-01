@@ -1,0 +1,49 @@
+id: arena-custom-checks
+
+info:
+  name: ArenaPlus Metadata & WASM Exposure Checks
+  author: naimurrahman
+  severity: medium
+  description: |
+    Checks ArenaPlus for exposed OpenGraph metadata, WebAssembly usage, and missing CSP.
+  tags: web,arena,metadata,wasm,headers,exposure
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers-condition: or
+    matchers:
+
+      - type: word
+        name: exposed-open-graph-tags
+        words:
+          - '<meta property="og:title"'
+          - '<meta property="og:description"'
+          - '<meta property="og:url"'
+        part: body
+        condition: and
+
+      - type: word
+        name: wasm-detected
+        words:
+          - 'WebAssembly.instantiateStreaming'
+          - 'window.instantiateStreaming'
+        part: body
+        condition: or
+
+      - type: word
+        name: analytics-and-apm
+        words:
+          - 'googletagmanager.com'
+          - 'appsflyer.com'
+          - 'huaweicloud.com'
+        part: body
+        condition: or
+
+      - type: regex
+        name: missing-csp
+        regex:
+          - '^(?!.*content-security-policy).*'
+        part: header
