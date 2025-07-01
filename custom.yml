@@ -5,8 +5,8 @@ info:
   author: naimurrahman
   severity: medium
   description: |
-    Checks ArenaPlus for exposed OpenGraph metadata, WebAssembly usage, and known analytics scripts.
-  tags: web,arena,metadata,wasm,headers,exposure
+    Checks ArenaPlus for exposed metadata, WASM usage, and analytics presence.
+  tags: web,arena,wasm,metadata,headers
 
 requests:
   - method: GET
@@ -18,26 +18,22 @@ requests:
 
       - type: word
         name: exposed-open-graph-tags
+        part: body
         words:
           - '<meta property="og:title"'
           - '<meta property="og:description"'
           - '<meta property="og:url"'
-        part: body
         condition: and
 
       - type: word
         name: wasm-detected
+        part: body
         words:
           - 'WebAssembly.instantiateStreaming'
           - 'window.instantiateStreaming'
-        part: body
-        condition: or
 
       - type: word
-        name: analytics-and-apm
-        words:
-          - 'googletagmanager.com'
-          - 'appsflyer.com'
-          - 'huaweicloud.com'
+        name: analytics-detected
         part: body
-        condition: or
+        words:
+          - 'googlet
