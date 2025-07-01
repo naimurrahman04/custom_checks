@@ -1,38 +1,29 @@
-id: arenaplus-custom-checks
+id: arena-custom-checks
 
 info:
-  name: ArenaPlus Web App Custom Security Checks
+  name: ArenaPlus Metadata & WASM Exposure Checks
   author: naimurrahman
   severity: medium
   description: |
-    Custom template for ArenaPlus web app to check for open redirect, exposed metadata, WASM usage, and missing security headers.
-  tags: web,arena,redirect,wasm,headers,metadata
+    Checks ArenaPlus for exposed OpenGraph metadata, WebAssembly usage, and missing CSP.
+  tags: web,arena,metadata,wasm,headers,exposure
 
 requests:
   - method: GET
     path:
-      - "{{BaseURL}}/?isFrom=Glife&gameId=123&next=https://evil.com"
-    headers:
-      User-Agent: nuclei-scanner
+      - "{{BaseURL}}"
 
     matchers-condition: or
     matchers:
 
-      - type: regex
-        name: open-redirect
-        regex:
-          - 'location.href\s*=\s*[\'"]?/glifeingame\?isFrom=Glife'
-        part: body
-        condition: and
-
       - type: word
-        name: og-meta-exposed
+        name: exposed-open-graph-tags
         words:
           - '<meta property="og:title"'
           - '<meta property="og:description"'
           - '<meta property="og:url"'
-        condition: and
         part: body
+        condition: and
 
       - type: word
         name: wasm-detected
@@ -40,29 +31,19 @@ requests:
           - 'WebAssembly.instantiateStreaming'
           - 'window.instantiateStreaming'
         part: body
+        condition: or
 
       - type: word
-        name: analytics-ids
+        name: analytics-and-apm
         words:
-          - 'appsflyer.com'
           - 'googletagmanager.com'
-          - 'GTM-'
+          - 'appsflyer.com'
+          - 'huaweicloud.com'
         part: body
+        condition: or
 
-      - type: status
-        status:
-          - 200
-
-  - method: GET
-    path:
-      - "{{BaseURL}}"
-    headers:
-      User-Agent: nuclei-scanner
-
-    matchers:
       - type: regex
-        name: missing-security-headers
+        name: missing-csp
         regex:
           - '^(?!.*content-security-policy).*'
         part: header
-        condition: and
